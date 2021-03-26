@@ -19,18 +19,44 @@ export default class SceneEditor extends Phaser.Scene {
     this.load.tilemapTiledJSON("blank-map", "assets/blank-map.json");
     this.load.image("ground", "assets/ground.png");
     this.load.image("ground1", "assets/ground/ground1.png");
+
+    this.load.tilemapTiledJSON("map1", "assets/isorpg.json");
+    this.load.image("outside", "assets/iso-64x64-outside.png");
+    this.load.image("building", "assets/iso-64x64-building.png");
   }
 
   private initCamera() {
     const camera = this.cameras.main;
     // camera.centerOn(config.width / 2, config.height / 2);
-    camera.setScroll(-config.width / 2, 0);
+    camera.setScroll(-config.width / 2, -100);
   }
 
   private initMap() {
-    this._map = this.add.tilemap("blank-map");
-    this._map.addTilesetImage("ground", "ground");
-    this._currentLayer = this._map.createLayer("ground-layer", ["ground"]);
+    // this._map = this.add.tilemap();
+    // const ground = this._map.addTilesetImage("ground", "ground");
+    // this._map.createLayer("ground-layer", [ground]);
+    // this._map = this.add.tilemap("blank-map");
+    // const ground = this._map.addTilesetImage("ground", "ground");
+    // this._currentLayer = this._map.createLayer("ground-layer", [ground]);
+
+    this._map = this.add.tilemap("map1");
+    const outside = this._map.addTilesetImage("iso-64x64-outside", "outside");
+    const building = this._map.addTilesetImage(
+      "iso-64x64-building",
+      "building"
+    );
+
+    this._currentLayer = this._map.createLayer(
+      "Tile Layer 1",
+      [outside, building]
+      // -32,
+      // -32
+    );
+    // this._currentLayer.setScrollFactor(-64, -32);
+
+    // const show = this.add.graphics();
+
+    // this._currentLayer.renderDebug(show);
   }
 
   private initGridLayer() {
@@ -53,7 +79,7 @@ export default class SceneEditor extends Phaser.Scene {
   public createBlankLayer(name: string): Phaser.Tilemaps.TilemapLayer {
     const layer = this._map.createBlankLayer(
       name,
-      "ground1",
+      "ground",
       0,
       0,
       config.rows,
@@ -104,6 +130,7 @@ export default class SceneEditor extends Phaser.Scene {
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
     const { worldX, worldY } = pointer;
+    console.log(this._currentLayer);
     console.log("world point: ", worldX, worldY);
     const tile = this._currentLayer.getTileAtWorldXY(worldX, worldY);
     console.log(
@@ -111,19 +138,43 @@ export default class SceneEditor extends Phaser.Scene {
       tile.x,
       tile.y
     );
-    this._currentLayer.putTileAt(1, tile.x, tile.y);
+    this._currentLayer.removeTileAt(tile.x, tile.y);
+    // this._currentLayer.putTileAt(1, tile.x, tile.y);
     console.log("this._currentLayer: ", this._currentLayer);
+  }
+
+  public addOriginPointer() {
+    const graphics = this.add.graphics({
+      x: 0,
+      y: 0,
+    });
+
+    graphics.lineStyle(2, 0xffffff);
+
+    graphics.beginPath();
+    graphics.arc(
+      0,
+      0,
+      2,
+      Phaser.Math.DegToRad(0),
+      Phaser.Math.DegToRad(360),
+      false,
+      0.02
+    );
+    graphics.strokePath();
+    graphics.closePath();
   }
 
   create() {
     this.initCamera();
+    this.addOriginPointer();
     // this.createTileSelector();
     this.initMap();
     this.initGridLayer();
     this.initPaintBrush();
     this.addListener();
     // 创建地块层
-    this._currentLayer = this.createBlankLayer("floor");
+    // this._currentLayer = this.createBlankLayer("floor");
 
     this._cursors = this.input.keyboard.createCursorKeys();
 
